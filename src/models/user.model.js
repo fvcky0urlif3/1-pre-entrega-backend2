@@ -1,11 +1,14 @@
-import { Schema } from "mongoose";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+
+const { Schema } = mongoose;
 
 const userSchema = new Schema({
     first_name: {
         type: String,
         required: true,
     },
-    last_name:{
+    last_name: {
         type: String,
         required: true,
     },
@@ -14,7 +17,7 @@ const userSchema = new Schema({
         required: true,
         unique: true,
     },
-    age:{
+    age: {
         type: Number,
         required: true,
     },
@@ -26,6 +29,7 @@ const userSchema = new Schema({
     //    tyoe: Schema.Types.ObjectId,
     //    ref: "cart",
     //    },
+    
     role: {
         type: String,
         required: true,
@@ -35,13 +39,12 @@ const userSchema = new Schema({
 });
 
 // Middleware para hashear la contraseña antes de guardar el usuario
-userSchema.pre("save", async function(next) {
+userSchema.pre("save", async function (next) {
     const user = this;
     // Solo hashear si la contraseña ha sido modificada
     if (!user.isModified("password")) return next();
 
     try {
-        // Generar un salt y hashear la contraseña
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
         next();
@@ -50,5 +53,6 @@ userSchema.pre("save", async function(next) {
     }
 });
 
-export default userSchema;
+// Exporta el modelo
+export const userModel = mongoose.model("User", userSchema);
 
