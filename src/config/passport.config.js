@@ -1,10 +1,10 @@
 import passport from "passport";
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
-import { SECRET } from "../utils/jwt.utils.js";
-import { userModel } from "../models/user.model.js";
+import { SECRET } from "../utils/jwt.utils.js"; // Asegúrate de que esta ruta sea correcta
+import { userModel } from "../models/user.model.js"; // Asegúrate de que esta ruta sea correcta
 import { comparePassword } from "../utils/password.utils.js"; 
-import { createToken, verifyToken } from "../utils/jwt.utils.js";
+import { createToken } from "../utils/jwt.utils.js"; // Asegúrate de que esta ruta sea correcta
 
 export function initializePassport() {
     passport.use("register", new LocalStrategy({
@@ -12,10 +12,11 @@ export function initializePassport() {
         usernameField: "email",
     }, async (req, email, password, done) => {
         try {
-            const { firstName, lastName, age, role} = req.body;
+            const { firstName, lastName, age, role } = req.body;
             if (!firstName || !lastName || !age) {
                 return done(null, false, { message: "Missing fields" });
             }
+
             const user = await userModel.create({
                 first_name: firstName,
                 last_name: lastName,
@@ -24,6 +25,10 @@ export function initializePassport() {
                 password,
                 role,
             });
+
+            const token = createToken({ id: user.id, email: user.email, role: user.role });
+
+            req.token = token; // Guardar el token en req.token
 
             return done(null, user);
         } catch (error) {
@@ -42,14 +47,8 @@ export function initializePassport() {
             const isValidPassword = await comparePassword(password, user.password);
             if (!isValidPassword) return done(null, false, { message: "Invalid password" });
 
-            const token = createToken({
-                id: user.id,
-                email: user.email,
-                role: user.role,
-            });
-
-            req.token = token;
-            req.cookies.token = token;
+            const token = createToken({ id: user.id, email: user.email, role: user.role });
+            req.token = token; // Guardar el token en req.token
 
             return done(null, user);
         } catch (error) {
@@ -88,5 +87,5 @@ export function initializePassport() {
 }
 
 function cookieExtractor(req) {
-    return req && req.cookies ? req.cookies.token : null;
+    return req && req.cookies ? req.cookies.token : null; // Extraer el token de las cookies
 }
