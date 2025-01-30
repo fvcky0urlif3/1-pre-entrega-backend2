@@ -12,8 +12,8 @@ export function initializePassport() {
         usernameField: "email",
     }, async (req, email, password, done) => {
         try {
-            const { firstName, lastName, age, role } = req.body;
-            if (!firstName || !lastName || !age || !role) {
+            const { firstName, lastName, age, role} = req.body;
+            if (!firstName || !lastName || !age) {
                 return done(null, false, { message: "Missing fields" });
             }
             const user = await userModel.create({
@@ -39,7 +39,7 @@ export function initializePassport() {
             const user = await userModel.findOne({ email });
             if (!user) return done(null, false, { message: "User not found" });
 
-            const isValidPassword = await comparepassword(password, user.password);
+            const isValidPassword = await comparePassword(password, user.password);
             if (!isValidPassword) return done(null, false, { message: "Invalid password" });
 
             const token = createToken({

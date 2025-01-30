@@ -10,4 +10,4 @@ export function createToken(payload) {
 
 export function verifyToken(token) {
     return jwt.verify(token, SECRET);
-};
+};  
