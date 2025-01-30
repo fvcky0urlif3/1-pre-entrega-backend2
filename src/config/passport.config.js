@@ -1,10 +1,10 @@
 import passport from "passport";
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
-import { SECRET } from "../utils/jwt.utils.js"; // Asegúrate de que esta ruta sea correcta
-import { userModel } from "../models/user.model.js"; // Asegúrate de que esta ruta sea correcta
+import { SECRET } from "../utils/jwt.utils.js"; 
+import { userModel } from "../models/user.model.js"; 
 import { comparePassword } from "../utils/password.utils.js"; 
-import { createToken } from "../utils/jwt.utils.js"; // Asegúrate de que esta ruta sea correcta
+import { createToken } from "../utils/jwt.utils.js"; 
 
 export function initializePassport() {
     passport.use("register", new LocalStrategy({
