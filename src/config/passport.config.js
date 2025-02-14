@@ -1,10 +1,10 @@
 import passport from "passport";
 import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
-import { SECRET } from "../utils/jwt.utils.js"; 
-import { userModel } from "../models/user.model.js"; 
-import { comparePassword } from "../utils/password.utils.js"; 
-import { createToken } from "../utils/jwt.utils.js"; 
+import { SECRET } from "../utils/jwt.utils.js";
+import { userModel } from "../models/user.model.js";
+import { comparePassword } from "../utils/password.utils.js";
+import { createToken } from "../utils/jwt.utils.js";
 
 export function initializePassport() {
     passport.use("register", new LocalStrategy({
@@ -28,18 +28,19 @@ export function initializePassport() {
 
             const token = createToken({ id: user.id, email: user.email, role: user.role });
 
-            req.token = token; // Guardar el token en req.token
+            console.log("✅ Usuario registrado:", user);
+            console.log("✅ Token generado en registro:", token);
 
-            return done(null, user);
+            return done(null, { user, token }); 
         } catch (error) {
+            console.error("❌ Error en registro:", error);
             return done(error);
         }
     }));
 
     passport.use("login", new LocalStrategy({
         usernameField: "email",
-        passReqToCallback: true,
-    }, async (req, email, password, done) => {
+    }, async (email, password, done) => {
         try {
             const user = await userModel.findOne({ email });
             if (!user) return done(null, false, { message: "User not found" });
@@ -48,24 +49,32 @@ export function initializePassport() {
             if (!isValidPassword) return done(null, false, { message: "Invalid password" });
 
             const token = createToken({ id: user.id, email: user.email, role: user.role });
-            req.token = token; // Guardar el token en req.token
 
-            return done(null, user);
+            console.log("✅ Usuario autenticado:", user);
+            console.log("✅ Token generado en login:", token);
+
+            return done(null, { user, token });
         } catch (error) {
+            console.error("❌ Error en login:", error);
             return done(error);
         }
     }));
 
     passport.use("jwt", new JWTStrategy({
         secretOrKey: SECRET,
-        jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor]),
+        jwtFromRequest: ExtractJwt.fromExtractors([
+            cookieExtractor,
+            ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ]),
     }, async (payload, done) => {
         try {
+            console.log("📢 Payload recibido en JWT:", payload);
             const user = await userModel.findById(payload.id);
             if (!user) return done(null, false);
 
             return done(null, user);
         } catch (error) {
+            console.error("❌ Error en JWT Strategy:", error);
             return done(error);
         }
     }));
@@ -81,11 +90,15 @@ export function initializePassport() {
 
             return done(null, user);
         } catch (error) {
+            console.error("❌ Error en deserialización:", error);
             return done(error);
         }
     });
 }
 
+// 📌 Extrae el token de cookies y headers
 function cookieExtractor(req) {
-    return req && req.cookies ? req.cookies.token : null; // Extraer el token de las cookies
+    const token = req?.signedCookies?.token || req?.cookies?.token || null;
+    console.log("🔍 Token extraído de cookies:", token);
+    return token;
 }

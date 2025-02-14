@@ -16,16 +16,12 @@ app.use(passport.initialize());
 
 mongoose
     .connect("mongodb://localhost:27017/ecommerce")
-    .then(() => {
-        console.log("connected to the database");
-    })
-    .catch((error) => {
-        console.log("error connecting to the database", error);
-    });
+    .then(() => console.log("✅ Conectado a la base de datos"))
+    .catch((error) => console.log("❌ Error en la conexión a la base de datos:", error));
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", passport.authenticate("jwt", { session: false }), userRouter);
 
 app.listen(4444, () => {
-    console.log("server is running on port http://localhost:4444");
+    console.log("🚀 Servidor corriendo en http://localhost:4444");
 });
